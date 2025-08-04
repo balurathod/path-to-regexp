@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pathToRegexp, parse, compile, match } from "./index.js";
+import { pathToRegexp, parse, compile, match, parseSegment } from "./index.js";
 import { PARSER_TESTS, COMPILE_TESTS, MATCH_TESTS } from "./cases.spec.js";
 
 /**
@@ -171,6 +171,31 @@ describe("path-to-regexp", () => {
       expect(() => {
         toPath({ foo: ["1", "2", "3", "a"] });
       }).toThrow(new TypeError('Invalid value for "foo": "/1/2/3/a"'));
+    });
+  });
+
+  describe("parseSegment", () => {
+    it("should throw for two parameters in a segment separated by non-period", () => {
+      expect(() => parseSegment("foo/:a_:b")).toThrow(
+        "ReDoS protection: Two parameters in a single segment must be separated by a period.",
+      );
+      expect(() => parseSegment("foo/:a-:b")).toThrow();
+      expect(() => parseSegment("foo/:a_:b_:c")).toThrow();
+    });
+
+    it("should not throw for two parameters separated by a period", () => {
+      expect(() => parseSegment("foo/:a.:b")).not.toThrow();
+      expect(() => parseSegment("foo/:a.:b.:c")).not.toThrow();
+    });
+
+    it("should not throw for single parameter", () => {
+      expect(() => parseSegment("foo/:a")).not.toThrow();
+      expect(() => parseSegment("foo/:param")).not.toThrow();
+    });
+
+    it("should not throw for segments without parameters", () => {
+      expect(() => parseSegment("foo/bar")).not.toThrow();
+      expect(() => parseSegment("plainsegment")).not.toThrow();
     });
   });
 });

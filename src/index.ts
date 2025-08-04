@@ -261,6 +261,11 @@ export function parse(str: string, options: ParseOptions = {}): TokenData {
   const it = lexer(str);
   let key = 0;
 
+  // Split the path into segments and validate each segment
+  str.split(delimiter).forEach((segment) => {
+    if (segment) parseSegment(segment);
+  });
+
   do {
     const path = it.text();
     if (path) tokens.push(encodePath(path));
@@ -701,4 +706,19 @@ export function pathToRegexp(
 
   const regexp = pathToSource(path, keys, flags, options);
   return Object.assign(new RegExp(regexp), { keys });
+}
+/**
+ * Parse a segment of the path.
+ */
+export function parseSegment(segment: string) {
+  // This allows advanced/custom path-to-regexp syntax and avoids false positives.
+  if (/[{}()[\]|\\+*?]/.test(segment)) {
+    return;
+  }
+  // Detect two parameters in a segment separated by a non-period
+  if (/:[^/.]+[^.]:[^/.]+/.test(segment)) {
+    throw new Error(
+      "ReDoS protection: Two parameters in a single segment must be separated by a period.",
+    );
+  }
 }
