@@ -1,15 +1,7 @@
 import { checkSync } from "recheck";
 import { pathToRegexp } from "../src/index.js";
 
-const TESTS = [
-  "/abc{abc:foo}?",
-  "/:foo{abc:foo}?",
-  "{:attr1}?{:attr2/}?",
-  "{:attr1/}?{:attr2/}?",
-  "{:foo.}?{:bar.}?",
-  "{:foo([^\\.]+).}?{:bar.}?",
-  ":foo(a+):bar(b+)",
-];
+const TESTS = MATCH_TESTS.map((x) => x.path);
 
 for (const path of TESTS) {
   try {
